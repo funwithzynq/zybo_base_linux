@@ -1,0 +1,13 @@
+diff --git a/include/configs/zynq_zed.h b/include/configs/zynq_zed.h
+index 832e7a0..6b6813e 100644
+--- a/include/configs/zynq_zed.h
++++ b/include/configs/zynq_zed.h
+@@ -25,6 +25,8 @@
+ #define CONFIG_ZYNQ_BOOT_FREEBSD
+ #define CONFIG_DEFAULT_DEVICE_TREE	zynq-zed
+ 
++#define CONFIG_ZYNQ_PS_CLK_FREQ 50000000UL
++
+ #include <configs/zynq-common.h>
+ 
+ #endif /* __CONFIG_ZYNQ_ZED_H */
