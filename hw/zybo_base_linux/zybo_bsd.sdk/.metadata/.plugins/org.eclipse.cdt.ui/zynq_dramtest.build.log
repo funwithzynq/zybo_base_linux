@@ -1,0 +1,41 @@
+01:55:59 **** Incremental Build of configuration Debug for project zynq_dramtest ****
+make all 
+'Building file: ../src/test01.c'
+'Invoking: ARM gcc compiler'
+arm-xilinx-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -I../../system_bsp/ps7_cortexa9_0/include -MMD -MP -MF"src/test01.d" -MT"src/test01.d" -o "src/test01.o" "../src/test01.c"
+../src/test01.c: In function 'memtest_readonly':
+../src/test01.c:1231:15: warning: variable 'data' set but not used [-Wunused-but-set-variable]
+  int i, addr, data=0;
+               ^
+../src/test01.c: In function 'memtest_all':
+../src/test01.c:1571:25: warning: initialization makes integer from pointer without a cast [enabled by default]
+  REG_WRITE(ERR_INFO+16, &err_buf[0]);   // put ptr to err_buf in err_info+16
+                         ^
+../src/test01.c:145:13: note: in definition of macro 'REG_WRITE'
+   ({int v = val; int a = addr; __asm volatile ("str  %1,[%0]\n" :: "r"(a),"r"(v)); v;})
+             ^
+../src/test01.c: In function 'measure_read_eye':
+../src/test01.c:1766:34: warning: variable 'rc' set but not used [-Wunused-but-set-variable]
+  int i, j, k, m, dqs_ratio, sel, rc, cc, ww;   // rd_gate_auto;
+                                  ^
+'Finished building: ../src/test01.c'
+' '
+'Building file: ../src/translation_table.s'
+'Invoking: ARM gcc assembler'
+arm-xilinx-eabi-gcc -c  -o"src/translation_table.o" "../src/translation_table.s"
+'Finished building: ../src/translation_table.s'
+' '
+'Building target: zynq_dramtest.elf'
+'Invoking: ARM gcc linker'
+arm-xilinx-eabi-gcc -Wl,-T -Wl,../src/lscript.ld -L../../system_bsp/ps7_cortexa9_0/lib -o "zynq_dramtest.elf"  ./src/test01.o ./src/translation_table.o   -Wl,--start-group,-lxil,-lgcc,-lc,--end-group -Wl,--start-group,-lxilisf,-lxil,-lgcc,-lc,--end-group
+'Finished building target: zynq_dramtest.elf'
+' '
+'Invoking: ARM Print Size'
+arm-xilinx-eabi-size zynq_dramtest.elf  |tee "zynq_dramtest.elf.size"
+   text	   data	    bss	    dec	    hex	filename
+  93624	   4496	  66568	 164688	  28350	zynq_dramtest.elf
+'Finished building: zynq_dramtest.elf.size'
+' '
+
+01:56:00 Build Finished (took 1s.327ms)
+

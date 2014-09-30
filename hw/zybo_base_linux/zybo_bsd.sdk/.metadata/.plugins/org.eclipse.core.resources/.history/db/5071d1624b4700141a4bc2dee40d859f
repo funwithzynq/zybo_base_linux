@@ -1,0 +1,140 @@
+/*
+ * taster.c
+ *
+ *  Created on: 26.09.2014
+ *      Author: phil
+ */
+
+
+#include <xparameters.h>
+#include <stdio.h>
+#include <xgpio.h>
+#include <xscugic.h>
+#include <xil_exception.h>
+//#include <xil_printf.h>
+
+#define LED_DEVICE_ID		XPAR_LEDS_4BITS_DEVICE_ID
+#define BTN_DEVICE_ID		XPAR_BTNS_4BITS_BASEADDR
+#define INTC_DEVICE_ID		XPAR_PS7_SCUGIC_0_DEVICE_ID
+
+#define BTN_INTERRUPT_ID	XPS_GPIO_INT_ID
+#define BTN_INTERRUPT		XGPIO_IR_CH1_MASK
+#define BTN_PRIORITY		0xA0	// 160
+#define BTN_TRIGGER			0x03	// falling edge
+
+#define LED_MASK			0x0f
+#define BTN_MASK			0x0f
+
+static XGpio* led_inst;
+static XGpio* btn_inst;
+static XScuGic* intc_inst;
+static u32 irqcount;
+
+void BtnIsr(void* InstancePtr);
+
+int setupGpio();
+
+int setupInterrupts();
+
+int main(void) {
+	int status;
+
+	status = setupGpio();
+	if (status != XST_SUCCESS) {
+		printf("GPIO Setup failed.\nExit.\n");
+		goto sysFailure;
+	}
+
+	status = setupInterrupts();
+	if (status != XST_SUCCESS) {
+		printf("Interrupt Setup failed.\nExit.\n");
+		goto sysFailure;
+	}
+
+	while(1) {
+	}
+
+	return XST_SUCCESS;
+
+sysFailure:
+	free(led_inst);
+	free(btn_inst);
+	free(intc_inst);
+	return status;
+}
+
+void BtnIsr(void* InstancePtr) {
+	XGpio *GpioPtr = (XGpio*) InstancePtr;
+	u32 ledstate;
+	u32 btn;
+
+	// disable inerrupts
+	XGpio_InterruptDisable(GpioPtr, BUTTON_INTERRUPT);
+
+	irqcount++;
+
+	if ((XGpio_InterruptGetStatus(GpioPtr) & BUTTON_INTERRUPT) != BUTTON_INTERRUPT)
+		return;
+
+	btn = XGpio_DiscreteRead(GpioPtr, 1);
+	ledstate = XGpio_DiscreteRead(led_inst, 1);
+	ledstate += btn;
+	XGpio_DiscreteWrite(led_inst, 1, ledstate);
+
+
+	(void) XGpio_InterruptClear(GpioPtr, BUTTON_INTERRUPT);
+	XGpio_InterruptEnable(BUTTON_INTERRUPT);
+}
+
+int setupInterrupts() {
+	int status;
+	XScuGic_Config* IntcConfig;
+
+	IntcConfig = XScuGic_LookupConfig(INTC_DEVICE_ID);
+	if (IntcConfig == NULL)
+		return status;
+
+	status = XScuGic_CfgInitialize(intc_inst, IntcConfig, IntcConfig->CpuBaseAddress);
+	if (status != XST_SUCCESS)
+		return status;
+
+	XScuGic_SetPriorityTriggerType(intc_inst, BTN_INTERRUPT_ID, BTN_PRIORITY, BTN_TRIGGER);
+
+	status = XScuGic_Connect(intc_inst, BTN_INTERRUPT_ID, (Xil_ExceptionHandler)BtnIsr, btn_inst);
+	if (status != XST_SUCCESS)
+		return status;
+
+	XScuGic_Enable(intc_inst, BTN_INTERRUPT_ID);
+
+	XGPio_InterruptEnable(btn_inst, BTN_INTERRUPT);
+	XGpio_InterruptGlobalEnable(&btn_inst);
+
+	Xil_ExceptionInit();
+	Xil_ExceptionRegisterHandler(XIL_EXCEPTION_ID_INT, (Xil_ExceptionHandler)XScuGic_InterruptHandler, intc_inst);
+	Xil_ExceptionEnable();
+
+	return XST_SUCCESS;
+
+}
+
+int setupGpio() {
+	int status;
+	// initialisiert gpio
+	status = XGpio_Initialize(led_inst, LED_DEVICE_ID);
+	if (status != XST_SUCCESS)
+		return status;
+
+	status = XGpio_Initialize(btn_inst, BTN_DEVICE_ID);
+	if (status != XST_SUCCESS)
+		return status;
+
+	// selbsttest der gpios
+	XGpio_SelfTest(led_inst);
+	XGpio_SelfTest(btn_inst);
+
+	// setze datenrichtung
+	XGpio_SetDataDirection(led_inst, 1,	~LED_MASK);
+	XGpio_SetDataDirection(btn_inst, 1, BTN_MASK);
+
+	return XST_SUCCESS;
+}

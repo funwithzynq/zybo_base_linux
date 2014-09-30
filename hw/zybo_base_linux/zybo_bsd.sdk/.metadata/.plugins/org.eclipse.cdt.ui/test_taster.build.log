@@ -1,0 +1,25 @@
+00:35:47 **** Auto Build of configuration Debug for project test_taster ****
+make all 
+'Building file: ../src/taster.c'
+'Invoking: ARM gcc compiler'
+arm-xilinx-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -I../../system_bsp/ps7_cortexa9_0/include -MMD -MP -MF"src/taster.d" -MT"src/taster.d" -o "src/taster.o" "../src/taster.c"
+../src/taster.c: In function 'BtnIsr':
+../src/taster.c:86:6: warning: variable 'led' set but not used [-Wunused-but-set-variable]
+  u32 led;
+      ^
+'Finished building: ../src/taster.c'
+' '
+'Building target: test_taster.elf'
+'Invoking: ARM gcc linker'
+arm-xilinx-eabi-gcc -Wl,-T -Wl,../src/lscript.ld -L../../system_bsp/ps7_cortexa9_0/lib -o "test_taster.elf"  ./src/taster.o   -Wl,--start-group,-lxil,-lgcc,-lc,--end-group -Wl,--start-group,-lxilisf,-lxil,-lgcc,-lc,--end-group
+'Finished building target: test_taster.elf'
+' '
+'Invoking: ARM Print Size'
+arm-xilinx-eabi-size test_taster.elf  |tee "test_taster.elf.size"
+   text	   data	    bss	    dec	    hex	filename
+  66024	   3088	  29884	  98996	  182b4	test_taster.elf
+'Finished building: test_taster.elf.size'
+' '
+
+00:35:48 Build Finished (took 927ms)
+
